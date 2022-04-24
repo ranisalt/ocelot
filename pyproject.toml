@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "ocelot"
+version = "0.1.0"
+description = ""
+authors = ["Ranieri Althoff <ranisalt@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Flask = "^2.1.1"
+pony = "^0.7.16"
+PyMySQL = "^1.0.2"
+toml = "^0.10.2"
+pydantic = "^1.9.0"
+python-dotenv = "^0.20.0"
+
+[tool.poetry.dev-dependencies]
+black = { version = "*", allow-prereleases = true }
+Faker = "^13.4.0"
+pony-stubs = "^0.5.2"
+pytest = "^7.1.2"
+pytest-black = "^0.3.12"
+pytest-cov = "^3.0.0"
+pytest-flake8 = "^1.1.1"
+pytest-mypy = "^0.9.1"
+types-toml = "^0.10.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

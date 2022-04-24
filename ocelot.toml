@@ -1,0 +1,12 @@
+[login]
+
+[worlds]
+
+[worlds.world1]
+id = 0
+name = "World"
+pvp-type = "pvp"
+address-protected = "127.0.0.1"
+port-protected = 7171
+address-unprotected = "127.0.0.1"
+port-unprotected = 7171
