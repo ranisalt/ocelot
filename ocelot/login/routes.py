@@ -141,9 +141,7 @@ def login():
             }
 
         case _:  # pragma: no cover
-            raise NotImplementedError(
-                f"Unknown request type: {type_} with body {request.json}"
-            )
+            return error_response(ErrorCode.INTERNAL_ERROR)
 
 
 @router.post("/client")
@@ -170,9 +168,7 @@ def client():
         #     ...
 
         case _:  # pragma: no cover
-            raise NotImplementedError(
-                f"Unknown request type: {type_} with body {request.json}"
-            )
+            return error_response(ErrorCode.INTERNAL_ERROR)
 
 
 # @router.post("/", defaults={"path": ""})
