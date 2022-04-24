@@ -9,7 +9,6 @@ from pony.orm import db_session
 from ..config import Config
 from ..database import Account, Character
 from ..enums import PlayerSex
-from ..routes import pvp_type_to_index
 
 
 def test_login(client: FlaskClient, config: Config, mocked_now: datetime, faker: Faker):
@@ -43,11 +42,11 @@ def test_login(client: FlaskClient, config: Config, mocked_now: datetime, faker:
     assert len(worlds) == 1
     assert worlds[0]["id"] == default_world.id
     assert worlds[0]["name"] == default_world.name
-    assert worlds[0]["pvp-type"] == pvp_type_to_index[default_world.pvp]
-    assert worlds[0]["address-protected"] == default_world.address_protected
-    assert worlds[0]["port-protected"] == default_world.port_protected
-    assert worlds[0]["address-unprotected"] == default_world.address_unprotected
-    assert worlds[0]["port-unprotected"] == default_world.port_unprotected
+    assert worlds[0]["pvptype"] == 0
+    assert worlds[0]["addressprotected"] == default_world.address_protected
+    assert worlds[0]["portprotected"] == default_world.port_protected
+    assert worlds[0]["addressunprotected"] == default_world.address_unprotected
+    assert worlds[0]["portunprotected"] == default_world.port_unprotected
 
     characters: list[dict] = sorted(
         res.json["playdata"]["characters"], key=itemgetter("name")

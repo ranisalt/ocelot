@@ -14,11 +14,11 @@ def create_app() -> Flask:
 
 
 def bind_database():
-    if not app.config["OCELOT"]:
+    if not app.config.get("OCELOT"):
         with open("ocelot.toml") as fp:
             app.config["OCELOT"] = load_config(fp)
 
-    if not app.config["PONY"]:
+    if not app.config.get("PONY"):
         app.config["PONY"] = db_config_from_env()
 
     pony_config = current_app.config["PONY"]

@@ -1,44 +1,19 @@
-import datetime
-import hashlib
 from typing import Optional
 
 from flask import Blueprint, current_app, request
 from pony import orm
 
-from .config import Config, World
-from .database import Account, OnlinePlayer
-from .enums import PlayerSex
-from .errors import ErrorCode, error_response
-from .typing import Pvp
+from . import handlers
+from .database import OnlinePlayer
+from .errors import (
+    ErrorCode,
+    InternalError,
+    InvalidCredentials,
+    OcelotError,
+    error_response,
+)
 
 router = Blueprint("login", __name__)
-
-session_defaults = {
-    "status": "active",
-    "returnernotification": False,
-    "showrewardnews": False,
-    "isreturner": False,
-    "fpstracking": False,
-    "optiontracking": False,
-    "tournamentticketpurchasestate": 0,
-    "tournamentcyclephase": 0,
-}
-
-world_defaults = {
-    "previewstate": 0,
-    "location": "USA",
-    "anticheatprotection": False,
-    "istournamentworld": False,
-    "restrictedstore": False,
-}
-
-player_defaults = {
-    "ishidden": False,
-    "ismaincharacter": False,
-    "tutorial": False,
-    "istournamentparticipant": False,
-    "dailyrewardstate": 0,
-}
 
 cacheinfo_defaults = {
     "twitchstreams": 0,
@@ -47,31 +22,10 @@ cacheinfo_defaults = {
     "gamingyoutubeviewer": 0,
 }
 
-pvp_type_to_index: dict[Pvp, int] = {
-    "pvp": 0,
-    "open": 0,
-    "no-pvp": 1,
-    "optional": 1,
-    "pvp-enforced": 2,
-    "hardcore": 2,
-}
 
-vocation_index_to_name: dict[int, str] = {
-    0: "None",
-    1: "Sorcerer",
-    2: "Druid",
-    3: "Paladin",
-    4: "Knight",
-    5: "Master Sorcerer",
-    6: "Elder Druid",
-    7: "Royal Paladin",
-    8: "Elite Knight",
-}
-
-
-def get_world() -> World:
-    config: Config = current_app.config["OCELOT"]
-    return next(world for world in config.worlds.values())
+@router.errorhandler(OcelotError)
+def handle_invalid_credentials(error: OcelotError):
+    return error_response(error.code)
 
 
 @router.post("/login")
@@ -83,65 +37,18 @@ def login():
             password: Optional[str] = request.json.get("password")
 
             if not email or not password:
-                return error_response(ErrorCode.INVALID_CREDENTIALS)
-
-            account: Account = Account.get(name=email)
-            if not account:
-                return error_response(ErrorCode.INVALID_CREDENTIALS)
-
-            password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
-            if account.password != password_hash:
-                return error_response(ErrorCode.INVALID_CREDENTIALS)
+                raise InvalidCredentials
 
             # optional in otclient
             # stay_logged_in: bool = request.json.get("stayloggedin", False)
             token: str = request.json.get("token", "")
-            now = int(datetime.datetime.now().timestamp())
 
-            world = get_world()
-
-            return {
-                "session": {
-                    "sessionkey": f"{email}\n{password}\n{token}\n{now}",
-                    "lastlogintime": account.last_login,
-                    "ispremium": account.premium_ends_at > now,
-                    "premiumuntil": account.premium_ends_at,
-                    **session_defaults,
-                },
-                "playdata": {
-                    "worlds": [
-                        {
-                            "id": world.id,
-                            "name": world.name,
-                            "pvp-type": pvp_type_to_index[world.pvp],
-                            "address-protected": world.address_protected,
-                            "port-protected": world.port_protected,
-                            "address-unprotected": world.address_unprotected,
-                            "port-unprotected": world.port_unprotected,
-                            **world_defaults,
-                        }
-                    ],
-                    "characters": [
-                        {
-                            "worldid": world.id,
-                            "name": character.name,
-                            "level": character.level,
-                            "vocation": vocation_index_to_name[character.vocation],
-                            "ismale": character.sex == PlayerSex.Male,
-                            "outfitid": character.look_type,
-                            "headcolor": character.look_head,
-                            "torsocolor": character.look_body,
-                            "legscolor": character.look_legs,
-                            "detailcolor": character.look_feet,
-                            "addonsflags": character.look_addons,
-                        }
-                        for character in account.characters
-                    ],
-                },
-            }
+            resp = handlers.login(current_app.config["OCELOT"], email, password, token)
+            return resp.dict()
 
         case _:  # pragma: no cover
-            return error_response(ErrorCode.INTERNAL_ERROR)
+            print(type_)
+            raise InternalError
 
 
 @router.post("/client")
@@ -168,6 +75,7 @@ def client():
         #     ...
 
         case _:  # pragma: no cover
+            print(type_)
             return error_response(ErrorCode.INTERNAL_ERROR)
 
 

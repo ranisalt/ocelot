@@ -1,7 +1,5 @@
 [login]
 
-[worlds]
-
 [worlds.world1]
 id = 0
 name = "World"
