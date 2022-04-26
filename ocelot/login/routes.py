@@ -31,7 +31,7 @@ def handle_invalid_credentials(error: OcelotError):
 @router.post("/login")
 @router.post("/login.php")
 def login():
-    match type_ := request.json["type"]:
+    match request.json["type"]:
         case "login":
             email: Optional[str] = request.json.get("email")
             password: Optional[str] = request.json.get("password")
@@ -39,7 +39,7 @@ def login():
             if not email or not password:
                 raise InvalidCredentials
 
-            # optional in otclient
+            # optional in otclient, unused
             # stay_logged_in: bool = request.json.get("stayloggedin", False)
             token: str = request.json.get("token", "")
 
@@ -47,14 +47,13 @@ def login():
             return resp.dict()
 
         case _:  # pragma: no cover
-            print(type_)
             raise InternalError
 
 
 @router.post("/client")
 @router.post("/client.php")
 def client():
-    match type_ := request.json["type"]:
+    match request.json["type"]:
         # case "boostedcreature":
         #     ...
 
@@ -75,11 +74,11 @@ def client():
         #     ...
 
         case _:  # pragma: no cover
-            print(type_)
             return error_response(ErrorCode.INTERNAL_ERROR)
 
 
-# @router.post("/", defaults={"path": ""})
-# @router.post("/<path:path>")
-# def catch_all(path):
-#     print(f"{request.method} /{path} {request.json}")
+@router.post("/", defaults={"path": ""})
+@router.post("/<path:path>")
+def catch_all(path):
+    print(f"{request.method} /{path} {request.json}")
+    return error_response(ErrorCode.INTERNAL_ERROR)

@@ -9,11 +9,11 @@ class Session(BaseModel):
     ispremium: bool
     premiumuntil: int
     status: Literal["active"] = "active"
-    returnernotification = False
-    showrewardnews = False
-    isreturner = False
-    fpstracking = False
-    optiontracking = False
+    returnernotification = True
+    showrewardnews = True
+    isreturner = True
+    fpstracking = True
+    optiontracking = True
     tournamentticketpurchasestate = 0
     tournamentcyclephase = 0
 
@@ -22,10 +22,10 @@ class World(BaseModel):
     id: int
     name: str
     pvptype: int
-    addressprotected: str
-    portprotected: int
-    addressunprotected: str
-    portunprotected: int
+    externaladdressprotected: str
+    externalportprotected: int
+    externaladdressunprotected: str
+    externalportunprotected: int
     previewstate = 0
     location = "USA"
     anticheatprotection = False

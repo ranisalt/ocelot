@@ -57,10 +57,10 @@ def login(
                     id=world.id,
                     name=world.name,
                     pvptype=pvp_type_to_index[world.pvp],
-                    addressprotected=world.address_protected,
-                    portprotected=world.port_protected,
-                    addressunprotected=world.address_unprotected,
-                    portunprotected=world.port_unprotected,
+                    externaladdressprotected=world.address_protected,
+                    externalportprotected=world.port_protected,
+                    externaladdressunprotected=world.address_unprotected,
+                    externalportunprotected=world.port_unprotected,
                 )
             ],
             characters=[
