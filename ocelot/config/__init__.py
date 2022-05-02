@@ -6,6 +6,15 @@ from pydantic import BaseModel, Field
 from .typing import Pvp
 
 
+class Database(BaseModel):
+    host = "localhost"
+    port = 3306
+    username: str
+    password: str
+    name = Field("forgottenserver", alias="database")
+    debug = False
+
+
 class World(BaseModel):
     id: int
     name: str
@@ -17,6 +26,7 @@ class World(BaseModel):
 
 
 class Config(BaseModel):
+    database: Database | None
     worlds: dict[str, World]
 
 

@@ -1,4 +1,6 @@
-[login]
+[database]
+username = "forgottenserver"
+password = "forgottenserver"
 
 [worlds.world1]
 id = 0

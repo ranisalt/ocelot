@@ -1,6 +1,6 @@
 import io
 
-from ..config import load_config
+from .. import load_config
 
 
 def test_load_config():

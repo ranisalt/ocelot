@@ -6,22 +6,23 @@ authors = ["Ranieri Althoff <ranisalt@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-Flask = "^2.1.1"
-pony = "^0.7.16"
-PyMySQL = "^1.0.2"
-toml = "^0.10.2"
+fastapi = "^0.75.2"
 pydantic = "^1.9.0"
-python-dotenv = "^0.20.0"
+PyMySQL = "^1.0.2"
+SQLAlchemy = { version = "^1.4.36", extras = ["mypy"] }
+toml = "^0.10.2"
+uvicorn = "^0.17.6"
 
 [tool.poetry.dev-dependencies]
 black = { version = "*", allow-prereleases = true }
-Faker = "^13.4.0"
-pony-stubs = "^0.5.2"
+Faker = "^13.6.0"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 pytest-flake8 = "^1.1.1"
 pytest-mypy = "^0.9.1"
-types-toml = "^0.10.5"
+types-toml = "^0.10.6"
+requests = "^2.27.1"
+sqlalchemy2-stubs = "^0.0.2-alpha.22"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

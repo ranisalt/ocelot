@@ -1,15 +1,16 @@
-from flask.testing import FlaskClient
-from pony.orm import db_session
+import sqlalchemy.orm
+from fastapi.testclient import TestClient
 
-from ..database import OnlinePlayer
+from ...models import OnlinePlayer
 
 
-def test_client_cacheinfo(client: FlaskClient):
-    with db_session:
+def test_client_cacheinfo(client: TestClient, db_session: sqlalchemy.orm.sessionmaker):
+    with db_session() as db:
         for i in range(3):
-            OnlinePlayer(player_id=i)
+            db.add(OnlinePlayer(player_id=i + 1))
+        db.commit()
 
     res = client.post("/client", json={"type": "cacheinfo"})
 
-    assert res.json
-    assert res.json["playersonline"] == 3
+    json = res.json()
+    assert json["playersonline"] == 3
