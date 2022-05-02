@@ -1,8 +1,8 @@
 import hashlib
 from datetime import datetime
 from operator import itemgetter
-import sqlalchemy.orm
 
+import sqlalchemy.orm
 from faker import Faker
 from fastapi.testclient import TestClient
 

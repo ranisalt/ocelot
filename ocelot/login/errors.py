@@ -1,4 +1,5 @@
 import enum
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -27,7 +28,9 @@ def error_response(code: ErrorCode) -> OcelotError:
 
 
 def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    return ocelot_exception_handler(request, error_response(ErrorCode.INVALID_CREDENTIALS))
+    return ocelot_exception_handler(
+        request, error_response(ErrorCode.INVALID_CREDENTIALS)
+    )
 
 
 def ocelot_exception_handler(request: Request, exc: OcelotError):
