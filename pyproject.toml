@@ -5,13 +5,14 @@ description = ""
 authors = ["Ranieri Althoff <ranisalt@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-fastapi = "^0.75.2"
 pydantic = "^1.9.0"
 PyMySQL = "^1.0.2"
-SQLAlchemy = { version = "^1.4.36", extras = ["mypy"] }
+python = "^3.10"
+SQLAlchemy = { version = "^1.4.36", extras = ["asyncio", "mypy"] }
+starlette = "^0.20.0"
 toml = "^0.10.2"
-uvicorn = "^0.17.6"
+uvicorn = { version = "^0.17.6", extras = ["standard"] }
+asyncmy = "^0.2.5"
 
 [tool.poetry.dev-dependencies]
 black = { version = "*", allow-prereleases = true }
@@ -20,9 +21,10 @@ pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 pytest-flake8 = "^1.1.1"
 pytest-mypy = "^0.9.1"
-types-toml = "^0.10.6"
+types-toml = "^0.10.7"
 requests = "^2.27.1"
-sqlalchemy2-stubs = "^0.0.2-alpha.22"
+sqlalchemy2-stubs = "*"
+aiosqlite = "^0.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

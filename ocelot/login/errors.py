@@ -1,8 +1,5 @@
 import enum
-
-from fastapi import Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from starlette.responses import JSONResponse
 
 
 class ErrorCode(enum.Enum):
@@ -16,24 +13,9 @@ error_messages = {
 }
 
 
-class OcelotError(Exception):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__()
-        self.code = code
-        self.message = message
+def error_response(code: ErrorCode):
+    return JSONResponse({"errorCode": code.value, "errorMessage": error_messages[code]})
 
 
-def error_response(code: ErrorCode) -> OcelotError:
-    return OcelotError(code=code, message=error_messages[code])
 
 
-def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    return ocelot_exception_handler(
-        request, error_response(ErrorCode.INVALID_CREDENTIALS)
-    )
-
-
-def ocelot_exception_handler(request: Request, exc: OcelotError):
-    return JSONResponse(
-        content={"errorCode": exc.code.value, "errorMessage": exc.message}
-    )

@@ -1,14 +1,14 @@
-import sqlalchemy.orm
-from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.testclient import TestClient
+import pytest
 
 from ...models import OnlinePlayer
 
 
-def test_client_cacheinfo(client: TestClient, db_session: sqlalchemy.orm.sessionmaker):
-    with db_session() as db:
-        for i in range(3):
-            db.add(OnlinePlayer(player_id=i + 1))
-        db.commit()
+@pytest.mark.anyio
+async def test_client_cacheinfo(client: TestClient, db_session: AsyncSession):
+    async with db_session.begin():
+        db_session.add_all(OnlinePlayer(player_id=i + 1) for i in range(3))
 
     res = client.post("/client", json={"type": "cacheinfo"})
 

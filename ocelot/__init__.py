@@ -2,16 +2,11 @@ import os
 
 import sqlalchemy
 import sqlalchemy.orm
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from starlette.applications import Starlette
 
 from .config import Config, load_config
-from .login.errors import (
-    OcelotError,
-    ocelot_exception_handler,
-    request_validation_exception_handler,
-)
-from .login.routes import router as login_router
+from .login.routes import routes as login_routes
 
 __version__ = "0.1.0"
 
@@ -25,7 +20,7 @@ def dsn_from_env(config: Config) -> str:
 
     if db := config.database:
         return (
-            f"mysql+pymysql://{db.username}:{db.password}@{db.host}:{db.port}/{db.name}"
+            f"mysql+asyncmy://{db.username}:{db.password}@{db.host}:{db.port}/{db.name}"
         )
 
     db_host = os.environ.get("MYSQL_HOST", "localhost")
@@ -42,19 +37,20 @@ def dsn_from_env(config: Config) -> str:
     return f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
 
 
-def create_app() -> FastAPI:
-    app = FastAPI()
-    app.add_exception_handler(OcelotError, ocelot_exception_handler)
-    app.add_exception_handler(
-        RequestValidationError, request_validation_exception_handler
-    )
-    app.include_router(login_router)
+def create_app() -> Starlette:
+    app = Starlette(routes=login_routes)
 
     @app.on_event("startup")
     async def startup():
-        app.state.config = load_config("ocelot.toml")
-        engine = sqlalchemy.create_engine(dsn_from_env(app.state.config))
-        app.state.sessionmaker = sqlalchemy.orm.sessionmaker(bind=engine)
+        config = load_config("ocelot.toml")
+        app.state.config = config
+
+        engine = create_async_engine(
+            dsn_from_env(app.state.config), echo=config.database.debug, future=True
+        )
+        app.state.sessionmaker = sqlalchemy.orm.sessionmaker(
+            bind=engine, future=True, class_=AsyncSession
+        )
 
     return app
 

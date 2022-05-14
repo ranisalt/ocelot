@@ -1,38 +1,40 @@
 import hashlib
 from datetime import datetime
 from operator import itemgetter
+import pytest
 
-import sqlalchemy.orm
+from sqlalchemy.ext.asyncio import AsyncSession
 from faker import Faker
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 from ocelot import config, models
 
 
-def test_login(
+@pytest.mark.anyio
+async def test_login(
     client: TestClient,
     config: config.Config,
-    db_session: sqlalchemy.orm.sessionmaker,
+    db_session: AsyncSession,
     faker: Faker,
     mocked_now: datetime,
 ):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    with db_session() as db:
-        account = models.Account(name=email, password=password_hash)
-        account.characters.append(
-            models.Character(
-                name="Bubble", level=273, vocation=8, sex=models.PlayerSex.Female.value
-            )
+    account = models.Account(name=email, password=password_hash)
+    account.characters.append(
+        models.Character(
+            name="Bubble", level=273, vocation=8, sex=models.PlayerSex.Female.value
         )
-        account.characters.append(
-            models.Character(
-                name="Cachero", level=423, vocation=5, sex=models.PlayerSex.Male.value
-            )
+    )
+    account.characters.append(
+        models.Character(
+            name="Cachero", level=423, vocation=5, sex=models.PlayerSex.Male.value
         )
-        db.add(account)
-        db.commit()
+    )
+
+    async with db_session.begin():
+        db_session.add(account)
 
     res = client.post(
         "/login", json={"type": "login", "email": email, "password": password}
@@ -84,11 +86,17 @@ def test_login_missing_password(client: TestClient, faker: Faker):
     assert res.json()["errorCode"] == 3
 
 
-def test_login_invalid_email(client: TestClient, faker: Faker):
+@pytest.mark.anyio
+async def test_login_invalid_email(
+    client: TestClient, db_session: AsyncSession, faker: Faker
+):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    models.Account(name=email, password=password_hash)
+    account = models.Account(name=email, password=password_hash)
+
+    async with db_session.begin():
+        db_session.add(account)
 
     res = client.post(
         "/login", json={"type": "login", "email": email[1:], "password": password}
@@ -96,11 +104,17 @@ def test_login_invalid_email(client: TestClient, faker: Faker):
     assert res.json()["errorCode"] == 3
 
 
-def test_login_wrong_password(client: TestClient, faker: Faker):
+@pytest.mark.anyio
+async def test_login_wrong_password(
+    client: TestClient, db_session: AsyncSession, faker: Faker
+):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    models.Account(name=email, password=password_hash)
+    account = models.Account(name=email, password=password_hash)
+
+    async with db_session.begin():
+        db_session.add(account)
 
     res = client.post(
         "/login", json={"type": "login", "email": email, "password": password[1:]}
