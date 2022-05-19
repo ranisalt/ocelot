@@ -1,3 +1,22 @@
+# class BoostedCreatureRequest:
+#     type: Literal["boostedcreature"]
+
+
+# class CacheInfoRequest:
+#     type: Literal["cacheinfo"]
+
+
+# class EventScheduleRequest:
+#     type: Literal["eventschedule"]
+
+
+# class NewsRequest:
+#     type: Literal["news"]
+#     count: int = Field(alias="count")
+#     is_returner: bool = Field(alias="isreturner")
+#     offset: int = Field(alias="offset")
+#     show_reward_news: bool = Field(alias="showrewardnews")
+
 login
 ```py
 {

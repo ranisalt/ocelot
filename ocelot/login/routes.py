@@ -1,17 +1,14 @@
 import datetime
+import enum
 import hashlib
-from dataclasses import asdict, dataclass
 
-from ocelot.config import Config
-from ocelot.config.typing import pvp_type_to_index
-from ocelot.models import Account, OnlinePlayer, PlayerSex
-from sqlalchemy import func
-from sqlalchemy.orm import selectinload, sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from databases import Database
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
+
+from ocelot.config import Config
+from ocelot.config.typing import pvp_type_to_index
 
 from .errors import ErrorCode, error_response
 
@@ -28,68 +25,9 @@ vocation_index_to_name: dict[int, str] = {
 }
 
 
-@dataclass(slots=True)
-class Session:
-    sessionkey: str
-    lastlogintime: int
-    ispremium: bool
-    premiumuntil: int
-    status = "active"
-    returnernotification = True
-    showrewardnews = True
-    isreturner = True
-    fpstracking = True
-    optiontracking = True
-    tournamentticketpurchasestate = 0
-    tournamentcyclephase = 0
-
-
-@dataclass(slots=True)
-class World:
-    id: int
-    name: str
-    pvptype: int
-    externaladdressprotected: str
-    externalportprotected: int
-    externaladdressunprotected: str
-    externalportunprotected: int
-    previewstate = 0
-    location = "USA"
-    anticheatprotection = False
-    istournamentworld = False
-    restrictedstore = False
-
-
-@dataclass(slots=True)
-class Character:
-    worldid: int
-    name: str
-    level: int
-    vocation: str
-    ismale: bool
-    outfitid: int
-    headcolor: int
-    torsocolor: int
-    legscolor: int
-    detailcolor: int
-    addonsflags: int
-    ishidden = False
-    ismaincharacter = False
-    tutorial = False
-    istournamentparticipant = False
-    dailyrewardstate = 0
-
-
-@dataclass(slots=True)
-class PlayData:
-    worlds: list[World]
-    characters: list[Character]
-
-
-@dataclass(slots=True)
-class LoginResponse:
-    session: Session
-    playdata: PlayData
+class PlayerSex(enum.IntEnum):
+    Female = 0
+    Male = 1
 
 
 async def login(request: Request):
@@ -101,78 +39,92 @@ async def login(request: Request):
             if not email or not password:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
-            config: Config = request.app.state.config
-            token = body.get("token", "")
-
-            db: AsyncSession = request.app.state.sessionmaker
-            async with db.begin():
-                result = await db.execute(select(Account).options(selectinload(Account.characters)).where(Account.name == email))
-                account = result.first()
+            db: Database = request.app.state.database
+            account = await db.fetch_one(
+                query="SELECT id, password, premium_ends_at FROM accounts WHERE name = :name",
+                values={"name": email},
+            )
 
             if not account:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
             password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
-            if account.password != password_hash:
+            if account["password"] != password_hash:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
             now = int(datetime.datetime.now().timestamp())
 
-            session = Session(
-                sessionkey=f"{email}\n{password}\n{token}\n{now}",
-                lastlogintime=account.last_login,
-                ispremium=account.premium_ends_at > now,
-                premiumuntil=account.premium_ends_at,
+            account_characters = await db.fetch_all(
+                query="SELECT name, level, vocation, looktype, lookhead, lookbody, looklegs, lookfeet, lookaddons, sex, lastlogin FROM players WHERE account_id = :account_id",
+                values={"account_id": account["id"]},
             )
 
+            token = body.get("token", "")
+            session = {
+                "sessionkey": f"{email}\n{password}\n{token}\n{now}",
+                "lastlogintime": max(c["lastlogin"] for c in account_characters),
+                "ispremium": account["premium_ends_at"] > now,
+                "premiumuntil": account["premium_ends_at"],
+                # not implemented
+                "status": "active",
+                "returnernotification": True,
+                "showrewardnews": True,
+                "isreturner": True,
+                "fpstracking": True,
+                "optiontracking": True,
+                "tournamentticketpurchasestate": 0,
+                "tournamentcyclephase": 0,
+            }
+
+            config: Config = request.app.state.config
             world = next(world for world in config.worlds.values())
 
-            worlds = [
-                World(
-                    id=world.id,
-                    name=world.name,
-                    pvptype=pvp_type_to_index[world.pvp],
-                    externaladdressprotected=world.address_protected,
-                    externalportprotected=world.port_protected,
-                    externaladdressunprotected=world.address_unprotected,
-                    externalportunprotected=world.port_unprotected,
-                )
-            ]
+            playdata = {
+                "worlds": [
+                    {
+                        "id": world.id,
+                        "name": world.name,
+                        "pvptype": pvp_type_to_index[world.pvp],
+                        "externaladdressprotected": world.address_protected,
+                        "externalportprotected": world.port_protected,
+                        "externaladdressunprotected": world.address_unprotected,
+                        "externalportunprotected": world.port_unprotected,
+                        # not implemented
+                        "previewstate": 0,
+                        "location": "USA",
+                        "anticheatprotection": False,
+                        "istournamentworld": False,
+                        "restrictedstore": False,
+                    }
+                ],
+                "characters": [
+                    {
+                        "worldid": world.id,
+                        "name": character["name"],
+                        "level": character["level"],
+                        "vocation": vocation_index_to_name[character["vocation"]],
+                        "ismale": character["sex"] == PlayerSex.Male,
+                        "outfitid": character["looktype"],
+                        "headcolor": character["lookhead"],
+                        "torsocolor": character["lookbody"],
+                        "legscolor": character["looklegs"],
+                        "detailcolor": character["lookfeet"],
+                        "addonsflags": character["lookaddons"],
+                        # not implemented
+                        "ishidden": False,
+                        "ismaincharacter": False,
+                        "tutorial": False,
+                        "istournamentparticipant": False,
+                        "dailyrewardstate": 0,
+                    }
+                    for character in account_characters
+                ],
+            }
 
-            characters = [
-                Character(
-                    worldid=world.id,
-                    name=character.name,
-                    level=character.level,
-                    vocation=vocation_index_to_name[character.vocation],
-                    ismale=character.sex == PlayerSex.Male,
-                    outfitid=character.look_type,
-                    headcolor=character.look_head,
-                    torsocolor=character.look_body,
-                    legscolor=character.look_legs,
-                    detailcolor=character.look_feet,
-                    addonsflags=character.look_addons,
-                )
-                for character in account.characters
-            ]
-
-            resp = LoginResponse(
-                session=session,
-                playdata=PlayData(worlds=worlds, characters=characters),
-            )
-            return JSONResponse(asdict(resp))
+            return JSONResponse({"session": session, "playdata": playdata})
 
         case _:  # pragma: no cover
             return error_response(ErrorCode.INTERNAL_ERROR)
-
-
-@dataclass(slots=True)
-class CacheInfoResponse:
-    playersonline: int
-    twitchstreams = 0
-    twitchviewer = 0
-    gamingyoutubestreams = 0
-    gamingyoutubeviewer = 0
 
 
 async def client(request: Request):
@@ -183,15 +135,13 @@ async def client(request: Request):
         #     ...
 
         case "cacheinfo":
-            db: sessionmaker = request.app.state.sessionmaker
-            async with db.begin():
-                result = await db.execute(
-                    select(OnlinePlayer).with_only_columns(func.count())
-                )
-                players_online: int = result.scalar_one()
+            db: Database = request.app.state.database
 
-            resp = CacheInfoResponse(playersonline=players_online)
-            return JSONResponse(asdict(resp))
+            players_online: int = await db.fetch_val(
+                query="SELECT COUNT(*) FROM players_online"
+            )
+
+            return JSONResponse({"playersonline": players_online})
 
         # case "eventschedule":
         #     ...
@@ -204,6 +154,6 @@ async def client(request: Request):
 
 
 routes = [
-    Route("/login", endpoint=login, methods=["POST"]),
-    Route("/client", endpoint=client, methods=["POST"]),
+    Route("/login", login, methods=["POST"]),
+    Route("/client", client, methods=["POST"]),
 ]

@@ -6,6 +6,10 @@ from pydantic import BaseModel, Field
 from .typing import Pvp
 
 
+class Debug(BaseModel):
+    enabled = False
+
+
 class Database(BaseModel):
     host = "localhost"
     port = 3306
@@ -26,11 +30,12 @@ class World(BaseModel):
 
 
 class Config(BaseModel):
+    debug: Debug = Field(default_factory=Debug)
     database: Database | None
     worlds: dict[str, World]
 
 
-def load_config(fp: TextIO) -> Config:
+def load_config(fp: str | TextIO) -> Config:
     parsed_toml = toml.load(fp)
     config = Config(**parsed_toml)
 

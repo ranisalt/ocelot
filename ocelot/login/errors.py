@@ -1,4 +1,5 @@
 import enum
+
 from starlette.responses import JSONResponse
 
 
@@ -15,7 +16,3 @@ error_messages = {
 
 def error_response(code: ErrorCode):
     return JSONResponse({"errorCode": code.value, "errorMessage": error_messages[code]})
-
-
-
-

@@ -1,16 +1,18 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.testclient import TestClient
 import pytest
-
-from ...models import OnlinePlayer
+from databases import Database
+from httpx import AsyncClient
 
 
 @pytest.mark.anyio
-async def test_client_cacheinfo(client: TestClient, db_session: AsyncSession):
-    async with db_session.begin():
-        db_session.add_all(OnlinePlayer(player_id=i + 1) for i in range(3))
+async def test_client_cacheinfo(client: AsyncClient, database: Database):
+    await database.execute(query="DELETE FROM players_online")
 
-    res = client.post("/client", json={"type": "cacheinfo"})
+    await database.execute_many(
+        query="INSERT INTO players_online (player_id) VALUES (:player_id)",
+        values=[{"player_id": i + 1} for i in range(3)],
+    )
+
+    res = await client.post("/client", json={"type": "cacheinfo"})
 
     json = res.json()
     assert json["playersonline"] == 3

@@ -1,8 +1,6 @@
 import os
 
-import sqlalchemy
-import sqlalchemy.orm
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from databases import Database
 from starlette.applications import Starlette
 
 from .config import Config, load_config
@@ -11,16 +9,16 @@ from .login.routes import routes as login_routes
 __version__ = "0.1.0"
 
 
-def dsn_from_env(config: Config) -> str:
+def database_from_env(config: Config) -> Database:
     # database_debug = os.environ.get("DATABASE_DEBUG")
     # echo = database_debug is not None and database_debug[0] in "1tTyY"
 
     if dsn := os.environ.get("DATABASE_URL"):
-        return dsn
+        return Database(dsn)
 
     if db := config.database:
-        return (
-            f"mysql+asyncmy://{db.username}:{db.password}@{db.host}:{db.port}/{db.name}"
+        return Database(
+            f"mysql://{db.username}:{db.password}@{db.host}:{db.port}/{db.name}"
         )
 
     db_host = os.environ.get("MYSQL_HOST", "localhost")
@@ -34,25 +32,30 @@ def dsn_from_env(config: Config) -> str:
     assert db_pass is not None, "MYSQL_PASSWORD not set"
 
     db_name = os.environ.get("MYSQL_DATABASE", "forgottenserver")
-    return f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+    return Database(f"mysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}")
 
 
-def create_app() -> Starlette:
-    app = Starlette(routes=login_routes)
-
-    @app.on_event("startup")
-    async def startup():
-        config = load_config("ocelot.toml")
-        app.state.config = config
-
-        engine = create_async_engine(
-            dsn_from_env(app.state.config), echo=config.database.debug, future=True
-        )
-        app.state.sessionmaker = sqlalchemy.orm.sessionmaker(
-            bind=engine, future=True, class_=AsyncSession
-        )
+def create_app(config: Config, database: Database) -> Starlette:
+    app = Starlette(debug=config.debug.enabled, routes=login_routes)
+    app.state.config = config
+    app.state.database = database
 
     return app
 
 
-app = create_app()
+def default_app():
+    with open("ocelot.toml") as fp:
+        config = load_config(fp)
+
+    database = database_from_env(config)
+    app = create_app(config, database)
+
+    @app.on_event("startup")
+    async def startup():
+        await app.state.database.connect()
+
+    @app.on_event("shutdown")
+    async def shutdown():
+        await app.state.database.disconnect()
+
+    return app
