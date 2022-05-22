@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  db:
+    image: bitnami/mariadb
+    ports:
+      - 3306:3306
+    volumes:
+      - test-dbdata:/bitnami/mariadb
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    environment:
+      - MARIADB_DATABASE=test
+      - MARIADB_USER=test
+      - MARIADB_PASSWORD=test
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  test-dbdata:
+    driver: local
