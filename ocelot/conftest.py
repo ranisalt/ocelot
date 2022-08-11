@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from ocelot.config import Config, load_config
+from .config import Config, load_config
 
 
 @pytest.fixture

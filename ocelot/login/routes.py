@@ -1,14 +1,13 @@
 import datetime
-import enum
 import hashlib
 
-from databases import Database
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from ocelot.config import Config
 from ocelot.config.typing import pvp_type_to_index
+from ocelot.models import Account, OnlinePlayer, PlayerSex
 
 from .errors import ErrorCode, error_response
 
@@ -25,11 +24,6 @@ vocation_index_to_name: dict[int, str] = {
 }
 
 
-class PlayerSex(enum.IntEnum):
-    Female = 0
-    Male = 1
-
-
 async def login(request: Request):
     body = await request.json()
 
@@ -39,32 +33,23 @@ async def login(request: Request):
             if not email or not password:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
-            db: Database = request.app.state.database
-            account = await db.fetch_one(
-                query="SELECT id, password, premium_ends_at FROM accounts WHERE name = :name",
-                values={"name": email},
-            )
-
+            account = await Account.get_or_none(name=email)
             if not account:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
             password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
-            if account["password"] != password_hash:
+            if account.password != password_hash:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
             now = int(datetime.datetime.now().timestamp())
-
-            account_characters = await db.fetch_all(
-                query="SELECT name, level, vocation, looktype, lookhead, lookbody, looklegs, lookfeet, lookaddons, sex, lastlogin FROM players WHERE account_id = :account_id",
-                values={"account_id": account["id"]},
-            )
-
             token = body.get("token", "")
+
+            last_login_time = max([c.last_login_at async for c in account.characters])
             session = {
                 "sessionkey": f"{email}\n{password}\n{token}\n{now}",
-                "lastlogintime": max(c["lastlogin"] for c in account_characters),
-                "ispremium": account["premium_ends_at"] > now,
-                "premiumuntil": account["premium_ends_at"],
+                "lastlogintime": last_login_time,
+                "ispremium": account.premium_ends_at > now,
+                "premiumuntil": account.premium_ends_at,
                 # not implemented
                 "status": "active",
                 "returnernotification": True,
@@ -100,16 +85,16 @@ async def login(request: Request):
                 "characters": [
                     {
                         "worldid": world.id,
-                        "name": character["name"],
-                        "level": character["level"],
-                        "vocation": vocation_index_to_name[character["vocation"]],
-                        "ismale": character["sex"] == PlayerSex.Male,
-                        "outfitid": character["looktype"],
-                        "headcolor": character["lookhead"],
-                        "torsocolor": character["lookbody"],
-                        "legscolor": character["looklegs"],
-                        "detailcolor": character["lookfeet"],
-                        "addonsflags": character["lookaddons"],
+                        "name": character.name,
+                        "level": character.level,
+                        "vocation": vocation_index_to_name[character.vocation],
+                        "ismale": character.sex == PlayerSex.Male,
+                        "outfitid": character.look_type,
+                        "headcolor": character.look_head,
+                        "torsocolor": character.look_body,
+                        "legscolor": character.look_legs,
+                        "detailcolor": character.look_feet,
+                        "addonsflags": character.look_addons,
                         # not implemented
                         "ishidden": False,
                         "ismaincharacter": False,
@@ -117,7 +102,7 @@ async def login(request: Request):
                         "istournamentparticipant": False,
                         "dailyrewardstate": 0,
                     }
-                    for character in account_characters
+                    async for character in account.characters
                 ],
             }
 
@@ -135,13 +120,7 @@ async def client(request: Request):
         #     ...
 
         case "cacheinfo":
-            db: Database = request.app.state.database
-
-            players_online: int = await db.fetch_val(
-                query="SELECT COUNT(*) FROM players_online"
-            )
-
-            return JSONResponse({"playersonline": players_online})
+            return JSONResponse({"playersonline": await OnlinePlayer.all().count()})
 
         # case "eventschedule":
         #     ...

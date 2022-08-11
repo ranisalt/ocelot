@@ -3,48 +3,40 @@ from datetime import datetime
 from operator import itemgetter
 
 import pytest
-from databases import Database
 from faker import Faker
 from httpx import AsyncClient
 
 from ocelot import config
-from ..routes import PlayerSex
+from ocelot.models import Account, Character, PlayerSex
 
 
 @pytest.mark.anyio
 async def test_login(
     client: AsyncClient,
     config: config.Config,
-    database: Database,
     faker: Faker,
     mocked_now: datetime,
 ):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    account_id: int = await database.fetch_val(
-        query="INSERT INTO accounts (name, password) VALUES (:name, :password) RETURNING id",
-        values={"name": email, "password": password_hash},
-    )
+    account = await Account.create(name=email, password=password_hash)
 
-    await database.execute_many(
-        query="INSERT INTO players (account_id, name, level, vocation, sex) VALUES (:account_id, :name, :level, :vocation, :sex)",
-        values=[
-            {
-                "account_id": account_id,
-                "name": "Bubble",
-                "level": 273,
-                "vocation": 8,
-                "sex": PlayerSex.Female.value,
-            },
-            {
-                "account_id": account_id,
-                "name": "Cachero",
-                "level": 423,
-                "vocation": 5,
-                "sex": PlayerSex.Male.value,
-            },
-        ],
+    await Character.create(
+        account=account,
+        name="Bubble",
+        level=273,
+        vocation=8,
+        sex=PlayerSex.Female,
+        last_login_at=mocked_now.timestamp() - 3600,
+    )
+    await Character.create(
+        account=account,
+        name="Cachero",
+        level=423,
+        vocation=5,
+        sex=PlayerSex.Male,
+        last_login_at=mocked_now.timestamp() - 7200,
     )
 
     res = await client.post(
@@ -52,11 +44,10 @@ async def test_login(
     )
     json = res.json()
 
-    print(json)
     session = json["session"]
     expected_token = f"{email}\n{password}\n\n{int(mocked_now.timestamp())}"
     assert session["sessionkey"] == expected_token
-    assert session["lastlogintime"] == 0
+    assert session["lastlogintime"] == mocked_now.timestamp() - 3600
     assert session["ispremium"] is False
     assert session["premiumuntil"] == 0
 
@@ -103,16 +94,11 @@ async def test_login_missing_password(client: AsyncClient, faker: Faker):
 
 
 @pytest.mark.anyio
-async def test_login_invalid_email(
-    client: AsyncClient, database: Database, faker: Faker
-):
+async def test_login_invalid_email(client: AsyncClient, faker: Faker):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    await database.execute(
-        query="INSERT INTO accounts (name, password) VALUES (:name, :password) RETURNING id",
-        values={"name": email, "password": password_hash},
-    )
+    await Account.create(name=email, password=password_hash)
 
     res = await client.post(
         "/login", json={"type": "login", "email": email[1:], "password": password}
@@ -121,16 +107,11 @@ async def test_login_invalid_email(
 
 
 @pytest.mark.anyio
-async def test_login_wrong_password(
-    client: AsyncClient, database: Database, faker: Faker
-):
+async def test_login_wrong_password(client: AsyncClient, faker: Faker):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
-    await database.execute(
-        query="INSERT INTO accounts (name, password) VALUES (:name, :password) RETURNING id",
-        values={"name": email, "password": password_hash},
-    )
+    await Account.create(name=email, password=password_hash)
 
     res = await client.post(
         "/login", json={"type": "login", "email": email, "password": password[1:]}
