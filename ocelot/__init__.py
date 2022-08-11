@@ -1,10 +1,6 @@
 import os
 
-from starlette.applications import Starlette
-from tortoise.contrib.starlette import register_tortoise
-
-from .config import Config, load_config
-from .login.routes import routes as login_routes
+from .config import Config
 
 __version__ = "0.1.0"
 
@@ -31,21 +27,3 @@ def database_from_env(config: Config) -> str:
 
     db_name = os.environ.get("MYSQL_DATABASE", "forgottenserver")
     return f"mysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
-
-
-def create_app(config: Config, **kwargs) -> Starlette:
-    app = Starlette(debug=config.debug.enabled, routes=login_routes)
-    app.state.config = config
-    register_tortoise(app, modules={"models": ["ocelot.models"]}, **kwargs)
-
-    return app
-
-
-def default_app():
-    with open("ocelot.toml") as fp:
-        config = load_config(fp)
-
-    db_url = database_from_env(config)
-    app = create_app(config, db_url=db_url)
-
-    return app
