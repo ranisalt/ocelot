@@ -1,0 +1,385 @@
+import enum
+
+
+@enum.unique
+class AmmoType(enum.Enum):
+    BOLT = 1
+    ARROW = 2
+    SPEAR = 3
+    THROWING_STAR = 4
+    THROWING_KNIFE = 5
+    STONE = 6
+    SNOW_BALL = 7
+
+
+@enum.unique
+class CombatType(enum.Flag):
+    PHYSICALDAMAGE = 1 << 0
+    ENERGYDAMAGE = 1 << 1
+    EARTHDAMAGE = 1 << 2
+    FIREDAMAGE = 1 << 3
+    UNDEFINEDDAMAGE = 1 << 4
+    LIFEDRAIN = 1 << 5
+    MANADRAIN = 1 << 6
+    HEALING = 1 << 7
+    DROWNDAMAGE = 1 << 8
+    ICEDAMAGE = 1 << 9
+    HOLYDAMAGE = 1 << 10
+    DEATHDAMAGE = 1 << 11
+
+
+@enum.unique
+class Direction(enum.Enum):
+    NORTH = 0
+    EAST = 1
+    SOUTH = 2
+    WEST = 3
+    SOUTH_WEST = 4
+    SOUTH_EAST = 5
+    NORTH_WEST = 6
+    NORTH_EAST = 7
+
+
+@enum.unique
+class FloorChange(enum.Flag):
+    DOWN = 1 << 0
+    NORTH = 1 << 1
+    SOUTH = 1 << 2
+    EAST = 1 << 3
+    WEST = 1 << 4
+    SOUTH_ALT = 1 << 5
+    EAST_ALT = 1 << 6
+
+
+class Fluid(enum.Enum):
+    EMPTY = 0
+    BLUE = 1
+    RED = 2
+    BROWN = 3
+    GREEN = 4
+    YELLOW = 5
+    WHITE = 6
+    PURPLE = 7
+    BLACK = 8
+
+    NONE = EMPTY
+    WATER = BLUE
+    BLOOD = RED
+    BEER = BROWN
+    SLIME = GREEN
+    LEMONADE = YELLOW
+    MILK = WHITE
+    MANA = PURPLE
+    INK = BLACK
+
+    LIFE = RED + 8
+    OIL = BROWN + 8
+    URINE = YELLOW + 8
+    COCONUT_MILK = WHITE + 8
+    WINE = PURPLE + 8
+
+    MUD = BROWN + 16
+    FRUIT_JUICE = YELLOW + 16
+
+    LAVA = RED + 24
+    RUM = BROWN + 24
+    SWAMP = GREEN + 24
+
+    TEA = BROWN + 32
+
+    MEAD = BROWN + 40
+
+
+@enum.unique
+class ItemGroup(enum.Enum):
+    GROUND = 1
+    CONTAINER = 2
+    WEAPON = 3
+    AMMUNITION = 4
+    ARMOR = 5
+    CHARGES = 6
+    TELEPORT = 7
+    MAGIC_FIELD = 8
+    WRITEABLE = 9
+    KEY = 10
+    SPLASH = 11
+    FLUID = 12
+    DOOR = 13
+    DEPRECATED = 14
+    PODIUM = 15
+
+
+@enum.unique
+class ItemType(enum.Enum):
+    DEPOT = 1
+    MAILBOX = 2
+    TRASH_HOLDER = 3
+    CONTAINER = 4
+    DOOR = 5
+    MAGIC_FIELD = 6
+    TELEPORT = 7
+    BED = 8
+    KEY = 9
+    RUNE = 10
+    PODIUM = 11
+
+
+@enum.unique
+class MagicEffect(enum.Enum):
+    DRAW_BLOOD = 1
+    LOSE_ENERGY = 2
+    POFF = 3
+    BLOCK_HIT = 4
+    EXPLOSION_AREA = 5
+    EXPLOSION_HIT = 6
+    FIRE_AREA = 7
+    YELLOW_RINGS = 8
+    GREEN_RINGS = 9
+    HIT_AREA = 10
+    TELEPORT = 11
+    ENERGY_HIT = 12
+    MAGIC_BLUE = 13
+    MAGIC_RED = 14
+    MAGIC_GREEN = 15
+    HIT_BY_FIRE = 16
+    HIT_BY_POISON = 17
+    MORT_AREA = 18
+    SOUND_GREEN = 19
+    SOUND_RED = 20
+    POISON_AREA = 21
+    SOUND_YELLOW = 22
+    SOUND_PURPLE = 23
+    SOUND_BLUE = 24
+    SOUND_WHITE = 25
+    BUBBLES = 26
+    CRAPS = 27
+    GIFT_WRAPS = 28
+    FIREWORK_YELLOW = 29
+    FIREWORK_RED = 30
+    FIREWORK_BLUE = 31
+    STUN = 32
+    SLEEP = 33
+    WATER_CREATURE = 34
+    GROUNDSHAKER = 35
+    HEARTS = 36
+    FIRE_ATTACK = 37
+    ENERGY_AREA = 38
+    SMALL_CLOUDS = 39
+    HOLY_DAMAGE = 40
+    BIG_CLOUDS = 41
+    ICE_AREA = 42
+    ICE_TORNADO = 43
+    ICE_ATTACK = 44
+    STONES = 45
+    SMALL_PLANTS = 46
+    CARNIPHILA = 47
+    PURPLE_ENERGY = 48
+    YELLOW_ENERGY = 49
+    HOLY_AREA = 50
+    BIG_PLANTS = 51
+    CAKE = 52
+    GIANTICE = 53
+    WATERSPLASH = 54
+    PLANTATTACK = 55
+    TUTORIALARROW = 56
+    TUTORIALSQUARE = 57
+    MIRRORHORIZONTAL = 58
+    MIRRORVERTICAL = 59
+    SKULLHORIZONTAL = 60
+    SKULLVERTICAL = 61
+    ASSASSIN = 62
+    STEPSHORIZONTAL = 63
+    BLOODYSTEPS = 64
+    STEPSVERTICAL = 65
+    YALAHARIGHOST = 66
+    BATS = 67
+    SMOKE = 68
+    INSECTS = 69
+    DRAGONHEAD = 70
+    ORCSHAMAN = 71
+    ORCSHAMAN_FIRE = 72
+    THUNDER = 73
+    FERUMBRAS = 74
+    CONFETTI_HORIZONTAL = 75
+    CONFETTI_VERTICAL = 76
+    # 77-157 are empty
+    BLACKSMOKE = 158
+    # 159-166 are empty
+    REDSMOKE = 167
+    YELLOWSMOKE = 168
+    GREENSMOKE = 169
+    PURPLESMOKE = 170
+    EARLY_THUNDER = 171
+    RAGIAZ_BONECAPSULE = 172
+    CRITICAL_DAMAGE = 173
+    # 174 is empty
+    PLUNGING_FISH = 175
+    BLUECHAIN = 176
+    ORANGECHAIN = 177
+    GREENCHAIN = 178
+    PURPLECHAIN = 179
+    GREYCHAIN = 180
+    YELLOWCHAIN = 181
+    YELLOWSPARKLES = 182
+    # 183 is empty
+    FAEEXPLOSION = 184
+    FAECOMING = 185
+    FAEGOING = 186
+    # 187 is empty
+    BIGCLOUDSSINGLESPACE = 188
+    STONESSINGLESPACE = 189
+    # 190 is empty
+    BLUEGHOST = 191
+    # 192 is empty
+    POINTOFINTEREST = 193
+    MAPEFFECT = 194
+    PINKSPARK = 195
+    FIREWORK_GREEN = 196
+    FIREWORK_ORANGE = 197
+    FIREWORK_PURPLE = 198
+    FIREWORK_TURQUOISE = 199
+    # 200 is empty
+    THECUBE = 201
+    DRAWINK = 202
+    PRISMATICSPARKLES = 203
+    THAIAN = 204
+    THAIANGHOST = 205
+    GHOSTSMOKE = 206
+    # 207 is empty
+    FLOATINGBLOCK = 208
+    BLOCK = 209
+    ROOTING = 210
+    # 211-212 are empty
+    GHOSTLYSCRATCH = 213
+    GHOSTLYBITE = 214
+    BIGSCRATCHING = 215
+    SLASH = 216
+    BITE = 217
+    # 218 is empty
+    CHIVALRIOUSCHALLENGE = 219
+    DIVINEDAZZLE = 220
+    ELECTRICALSPARK = 221
+    PURPLETELEPORT = 222
+    REDTELEPORT = 223
+    ORANGETELEPORT = 224
+    GREYTELEPORT = 225
+    LIGHTBLUETELEPORT = 226
+    # 227-229 are empty
+    FATAL = 230
+    DODGE = 231
+    HOURGLASS = 232
+    # 233-234 are empty
+    FERUMBRAS_1 = 235
+    GAZHARAGOTH = 236
+    MAD_MAGE = 237
+    HORESTIS = 238
+    DEVOVORGA = 239
+    FERUMBRAS_2 = 240
+
+
+@enum.unique
+class PlayerSex(enum.Enum):
+    FEMALE = 0
+    MALE = 1
+
+
+@enum.unique
+class Race(enum.Enum):
+    VENOM = 1
+    BLOOD = 2
+    UNDEAD = 3
+    FIRE = 4
+    ENERGY = 5
+    INK = 6
+
+
+@enum.unique
+class ShootType(enum.Enum):
+    SPEAR = 1
+    BOLT = 2
+    ARROW = 3
+    FIRE = 4
+    ENERGY = 5
+    POISONARROW = 6
+    BURSTARROW = 7
+    THROWINGSTAR = 8
+    THROWINGKNIFE = 9
+    SMALLSTONE = 10
+    DEATH = 11
+    LARGEROCK = 12
+    SNOWBALL = 13
+    POWERBOLT = 14
+    POISON = 15
+    INFERNALBOLT = 16
+    HUNTINGSPEAR = 17
+    ENCHANTEDSPEAR = 18
+    REDSTAR = 19
+    GREENSTAR = 20
+    ROYALSPEAR = 21
+    SNIPERARROW = 22
+    ONYXARROW = 23
+    PIERCINGBOLT = 24
+    WHIRLWINDSWORD = 25
+    WHIRLWINDAXE = 26
+    WHIRLWINDCLUB = 27
+    ETHEREALSPEAR = 28
+    ICE = 29
+    EARTH = 30
+    HOLY = 31
+    SUDDENDEATH = 32
+    FLASHARROW = 33
+    FLAMMINGARROW = 34
+    SHIVERARROW = 35
+    ENERGYBALL = 36
+    SMALLICE = 37
+    SMALLHOLY = 38
+    SMALLEARTH = 39
+    EARTHARROW = 40
+    EXPLOSION = 41
+    CAKE = 42
+
+    TARSALARROW = 44
+    VORTEXBOLT = 45
+
+    PRISMATICBOLT = 48
+    CRYSTALLINEARROW = 49
+    DRILLBOLT = 50
+    ENVENOMEDARROW = 51
+
+    GLOOTHSPEAR = 53
+    SIMPLEARROW = 54
+
+    LEAFSTAR = 56
+    DIAMONDARROW = 57
+    SPECTRALBOLT = 58
+    ROYALSTAR = 59
+
+
+@enum.unique
+class SlotPosition(enum.Flag):
+    WHEREEVER = 0xFFFFFFFF
+    HEAD = 1 << 0
+    NECKLACE = 1 << 1
+    BACKPACK = 1 << 2
+    ARMOR = 1 << 3
+    RIGHT = 1 << 4
+    LEFT = 1 << 5
+    LEGS = 1 << 6
+    FEET = 1 << 7
+    RING = 1 << 8
+    AMMO = 1 << 9
+    DEPOT = 1 << 10
+    TWO_HAND = 1 << 11
+    HAND = LEFT | RIGHT
+
+
+@enum.unique
+class WeaponType(enum.Enum):
+    SWORD = 1
+    CLUB = 2
+    AXE = 3
+    SHIELD = 4
+    DISTANCE = 5
+    WAND = 6
+    AMMO = 7
+    QUIVER = 8
