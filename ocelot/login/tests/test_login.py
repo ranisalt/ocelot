@@ -29,6 +29,9 @@ async def test_login(
         vocation=8,
         sex=PlayerSex.Female,
         last_login_at=mocked_now.timestamp() - 3600,
+        position_x=32312,
+        position_y=32231,
+        position_z=7,
     )
     await Character.create(
         account=account,
@@ -37,6 +40,9 @@ async def test_login(
         vocation=5,
         sex=PlayerSex.Male,
         last_login_at=mocked_now.timestamp() - 7200,
+        position_x=32312,
+        position_y=32231,
+        position_z=7,
     )
 
     res = await client.post(

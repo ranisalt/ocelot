@@ -30,6 +30,7 @@ def config() -> Config:
         port-protected = 7171
         address-unprotected = "prod-lb-eu.tibia.com"
         port-unprotected = 7171
+        map = { type = "otbm", file = "data/world/map.otbm" }
         """
     )
     return load_config(fp)

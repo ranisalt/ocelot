@@ -1,0 +1,17 @@
+[database]
+username = "forgottenserver"
+password = "forgottenserver"
+
+[universe]
+private-key = "key.pem"
+session = { type = "tfs" }
+
+[worlds.world1]
+id = 0
+name = "Antica"
+pvp-type = "pvp"
+address-protected = "127.0.0.1"
+port-protected = 7171
+address-unprotected = "127.0.0.1"
+port-unprotected = 7171
+map = { type = "otbm", file = "data/world/forgotten.otbm" }

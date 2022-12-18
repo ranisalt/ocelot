@@ -42,6 +42,9 @@ class Character(models.Model):
     look_legs = fields.IntField(source_field="looklegs", default=0)
     look_feet = fields.IntField(source_field="lookfeet", default=0)
     look_addons = fields.IntField(source_field="lookaddons", default=0)
+    position_x = fields.IntField(source_field="posx")
+    position_y = fields.IntField(source_field="posy")
+    position_z = fields.IntField(source_field="posz")
     sex = fields.IntEnumField(PlayerSex)
     last_login_at = fields.IntField(source_field="lastlogin", default=0)
 
