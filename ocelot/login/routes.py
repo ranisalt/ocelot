@@ -1,13 +1,13 @@
-import datetime
 import hashlib
+from datetime import datetime
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from ocelot.config import Config
-from ocelot.config.typing import pvp_type_to_index
+from ocelot.config import Config, pvp_type_to_index
 from ocelot.models import Account, OnlinePlayer, PlayerSex
+from ocelot.session import SessionManager
 
 from .errors import ErrorCode, error_response
 
@@ -41,12 +41,13 @@ async def login(request: Request):
             if account.password != password_hash:
                 return error_response(ErrorCode.INVALID_CREDENTIALS)
 
-            now = int(datetime.datetime.now().timestamp())
+            now = int(datetime.now().timestamp())
             token = body.get("token", "")
 
             last_login_time = max([c.last_login_at async for c in account.characters])
+            session_manager: SessionManager = request.app.state.session_manager
             session = {
-                "sessionkey": f"{email}\n{password}\n{token}\n{now}",
+                "sessionkey": session_manager.encode(account, token, str(now)),
                 "lastlogintime": last_login_time,
                 "ispremium": account.premium_ends_at > now,
                 "premiumuntil": account.premium_ends_at,
@@ -134,5 +135,7 @@ async def client(request: Request):
 
 routes = [
     Route("/login", login, methods=["POST"]),
+    Route("/login.php", login, methods=["POST"]),
     Route("/client", client, methods=["POST"]),
+    Route("/client.php", client, methods=["POST"]),
 ]

@@ -45,7 +45,7 @@ async def test_login(
     json = res.json()
 
     session = json["session"]
-    expected_token = f"{email}\n{password}\n\n{int(mocked_now.timestamp())}"
+    expected_token = "AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
     assert session["sessionkey"] == expected_token
     assert session["lastlogintime"] == mocked_now.timestamp() - 3600
     assert session["ispremium"] is False
