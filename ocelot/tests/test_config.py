@@ -1,6 +1,6 @@
 import io
 
-from .. import load_config
+from ..config import load_config
 
 
 def test_load_config():
@@ -14,6 +14,7 @@ def test_load_config():
         port-protected = 7171
         address-unprotected = "prod-lb-eu.tibia.com"
         port-unprotected = 7171
+        map = { type = "otbm", file = "data/world/map.otbm" }
         """
     )
 
@@ -37,6 +38,7 @@ def test_load_config_pvp_types():
         port-protected = 7171
         address-unprotected = "prod-lb-na.tibia.com"
         port-unprotected = 7171
+        map = { type = "otbm", file = "data/world/map.otbm" }
         """
 
     fp = io.StringIO(
