@@ -6,6 +6,13 @@ from .. import load_config
 def test_load_config():
     fp = io.StringIO(
         """
+        [database]
+        username = "forgottenserver"
+        password = "forgottenserver"
+
+        [universe]
+        name-generator = "faker"
+
         [worlds.default]
         id = 0
         name = "Antica"
@@ -30,6 +37,13 @@ def test_load_config():
 
 def test_load_config_pvp_types():
     base = """
+        [database]
+        username = "test"
+        password = "test"
+
+        [universe]
+        name-generator = "faker"
+
         [worlds.default]
         id = 0
         name = "Antica"

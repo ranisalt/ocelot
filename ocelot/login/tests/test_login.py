@@ -4,7 +4,7 @@ from operator import itemgetter
 
 import pytest
 from faker import Faker
-from httpx import AsyncClient
+from starlette.testclient import TestClient
 
 from ocelot import config
 from ocelot.models import Account, Character, PlayerSex
@@ -12,7 +12,7 @@ from ocelot.models import Account, Character, PlayerSex
 
 @pytest.mark.anyio
 async def test_login(
-    client: AsyncClient,
+    client: TestClient,
     config: config.Config,
     faker: Faker,
     mocked_now: datetime,
@@ -39,7 +39,7 @@ async def test_login(
         last_login_at=mocked_now.timestamp() - 7200,
     )
 
-    res = await client.post(
+    res = client.post(
         "/login", json={"type": "login", "email": email, "password": password}
     )
     json = res.json()
@@ -80,40 +80,38 @@ async def test_login(
 
 
 @pytest.mark.anyio
-async def test_login_missing_email(client: AsyncClient, faker: Faker):
-    res = await client.post(
-        "/login", json={"type": "login", "password": faker.password()}
-    )
+async def test_login_missing_email(client: TestClient, faker: Faker):
+    res = client.post("/login", json={"type": "login", "password": faker.password()})
     assert res.json()["errorCode"] == 3
 
 
 @pytest.mark.anyio
-async def test_login_missing_password(client: AsyncClient, faker: Faker):
-    res = await client.post("/login", json={"type": "login", "email": faker.email()})
+async def test_login_missing_password(client: TestClient, faker: Faker):
+    res = client.post("/login", json={"type": "login", "email": faker.email()})
     assert res.json()["errorCode"] == 3
 
 
 @pytest.mark.anyio
-async def test_login_invalid_email(client: AsyncClient, faker: Faker):
+async def test_login_invalid_email(client: TestClient, faker: Faker):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
     await Account.create(name=email, password=password_hash)
 
-    res = await client.post(
+    res = client.post(
         "/login", json={"type": "login", "email": email[1:], "password": password}
     )
     assert res.json()["errorCode"] == 3
 
 
 @pytest.mark.anyio
-async def test_login_wrong_password(client: AsyncClient, faker: Faker):
+async def test_login_wrong_password(client: TestClient, faker: Faker):
     email, password = faker.email(), faker.password()
     password_hash = hashlib.sha1(password.encode("ascii")).hexdigest()
 
     await Account.create(name=email, password=password_hash)
 
-    res = await client.post(
+    res = client.post(
         "/login", json={"type": "login", "email": email, "password": password[1:]}
     )
     assert res.json()["errorCode"] == 3

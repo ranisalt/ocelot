@@ -1,6 +1,7 @@
 import enum
 
 from tortoise import fields, models
+from .fields import BinaryField
 
 
 class PlayerSex(enum.IntEnum):
@@ -41,6 +42,7 @@ class Character(models.Model):
     look_addons = fields.IntField(source_field="lookaddons", default=0)
     sex = fields.IntEnumField(PlayerSex)
     last_login_at = fields.IntField(source_field="lastlogin", default=0)
+    last_ip = BinaryField(source_field="lastip", max_length=16, default="")
 
 
 class OnlinePlayer(models.Model):

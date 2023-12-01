@@ -22,6 +22,9 @@ def config() -> Config:
         username = "test"
         password = "test"
 
+        [universe]
+        name-generator = "faker"
+
         [worlds.default]
         id = 0
         name = "Antica"

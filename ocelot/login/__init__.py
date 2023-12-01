@@ -1,3 +1,4 @@
+from faker import Faker
 from starlette.applications import Starlette
 from tortoise.contrib.starlette import register_tortoise
 
@@ -10,6 +11,10 @@ from .routes import routes as login_routes
 def create_app(config: Config, **kwargs) -> Starlette:
     app = Starlette(debug=config.debug.enabled, routes=login_routes)
     app.state.config = config
+
+    fake = Faker()
+    app.state.generate_name = lambda : f"{fake.first_name()} {fake.last_name()}"
+
     register_tortoise(app, modules={"models": ["ocelot.models"]}, **kwargs)
 
     return app
