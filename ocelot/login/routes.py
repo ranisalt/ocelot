@@ -192,7 +192,7 @@ async def accounts(request: Request):
             password1 = body.get("Password1", "")
             if not password1:
                 return error_response(
-                    ErrorCode.CHECK_PASSWORD_EMPTY_PASSWORD, Password1=email
+                    ErrorCode.CHECK_PASSWORD_EMPTY_PASSWORD, Password1=password1
                 )
 
             # "PasswordStrength": 0,

@@ -1,4 +1,4 @@
-from typing import Literal, TextIO, Union
+from typing import Literal, TextIO
 
 import toml
 from pydantic import BaseModel, Field
@@ -35,10 +35,10 @@ class Universe(BaseModel):
     session: _Session = Field(alias="session", default_factory=_TokenSession)
 
 
-OptionalPvp = Union[Literal["no-pvp"], Literal["optional"]]
-OpenPvp = Union[Literal["pvp"], Literal["open"]]
-HardcorePvp = Union[Literal["pvp-enforced"], Literal["hardcore"]]
-Pvp = Union[OptionalPvp, OpenPvp, HardcorePvp]
+OptionalPvp = Literal["no-pvp"] | Literal["optional"]
+OpenPvp = Literal["pvp"] | Literal["open"]
+HardcorePvp = Literal["pvp-enforced"] | Literal["hardcore"]
+Pvp = OptionalPvp | OpenPvp | HardcorePvp
 
 pvp_type_to_index: dict[str, int] = {
     "pvp": 0,
@@ -75,8 +75,8 @@ class World(BaseModel):
 class Config(BaseModel):
     debug: Debug = Field(default_factory=Debug)
     database: Database | None
-    universe: Universe | None = Field(default_factory=Universe)
-    worlds: dict[str, World] | None = Field(default_factory=dict)
+    universe: Universe
+    worlds: dict[str, World] = Field(default_factory=dict)
 
 
 def load_config(fp: str | TextIO) -> Config:
